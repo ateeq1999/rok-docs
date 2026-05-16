@@ -51,6 +51,8 @@ function DocsPage() {
         <Markdown
           content={doc.content}
           onHeadings={setHeadings}
+          title={doc.title}
+          slug={doc.slug}
         />
       </article>
     </DocLayout>
