@@ -33,9 +33,6 @@ rok make:controller User
 # Resource controller (CRUD methods scaffolded)
 rok make:controller User --resource
 
-# API controller (JSON responses)
-rok make:controller User --api
-
 # Nested controller
 rok make:controller Admin/UserController
 ```

@@ -93,6 +93,7 @@ export const navigation: NavSection[] = [
       { title: "Docker", slug: "deployment/docker" },
       { title: "Environment", slug: "deployment/environment" },
       { title: "Production", slug: "deployment/production" },
+      { title: "Publishing", slug: "deployment/publishing" },
     ],
   },
 ]

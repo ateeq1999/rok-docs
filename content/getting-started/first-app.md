@@ -9,6 +9,8 @@ description: Build a simple API from scratch to learn the Rok workflow — from 
 rok new blog-api
 cd blog-api
 cp .env.example .env
+rok secrets:generate       # Generate secure keys
+rok check                  # Verify project structure
 ```
 
 Edit `.env` to set your `DATABASE_URL`, then run migrations:

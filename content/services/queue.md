@@ -109,15 +109,14 @@ rok queue:work --max-jobs 100
 # Check queue status
 rok queue:status
 
-# Retry failed jobs
+# Retry a failed job by ID
 rok queue:retry --job-id 42
-rok queue:retry --all
 
-# Clear pending jobs
+# Delete failed jobs (all queues)
 rok queue:flush
 
-# Clear failed jobs
-rok queue:flush --failed
+# Delete failed jobs in a specific queue
+rok queue:flush --queue emails
 ```
 
 Programmatic worker:

@@ -54,8 +54,9 @@ rok db:migrate
 # Preview without applying
 rok db:migrate --dry-run
 
-# Run N specific migrations
-rok db:migrate --step 3
+# Run with progress output (pending count, before/after stats, colored)
+rok db:update
+rok db:update --dry-run
 
 # Show migration status
 rok db:status
@@ -67,17 +68,24 @@ rok db:status
 # Roll back the last batch
 rok db:rollback
 
-# Roll back multiple batches
-rok db:rollback --steps 3
-
-# Roll back all migrations
-rok db:rollback --all
+# Roll back N batches
+rok db:rollback --step 3
 
 # Drop all tables and re-run all migrations (dev only)
 rok db:fresh
 
 # Fresh with seeders
 rok db:fresh --seed
+
+## Introspection
+
+```bash
+# Introspect a database table → generate model struct
+rok db:pull users
+
+# Diff a model struct against the actual schema
+rok db:diff Post
+```
 ```
 
 ## Migration DSL (Rust)

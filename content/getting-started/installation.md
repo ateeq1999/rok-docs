@@ -71,16 +71,32 @@ Copy the environment file and configure your database connection:
 cp .env.example .env
 ```
 
+Generate secure keys for production:
+
+```bash
+rok secrets:generate
+```
+
+This reads `.env.example`, identifies all secret-like keys (`SECRET`, `_KEY`, `PASSWORD`, `TOKEN`), and generates cryptographically random hex values in `.env`.
+
 Edit `.env` to set your `DATABASE_URL`:
 
 ```env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/my_app_dev
 ```
 
+Verify your project is set up correctly:
+
+```bash
+rok check
+```
+
 Then run the database migrations:
 
 ```bash
 rok db:migrate
+# or with progress output:
+rok db:update
 ```
 
 Your application is now ready. Start the development server:
