@@ -57,8 +57,8 @@ function SidebarSection({
           return (
             <Link
               key={item.slug}
-              to="/docs/$slug"
-              params={{ slug: item.slug }}
+              to="/docs/$"
+              params={{ _splat: item.slug }}
               onClick={onClose}
               className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
                 active

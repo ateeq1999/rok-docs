@@ -32,8 +32,8 @@ export function Header({ onMenuClick }: HeaderProps) {
             Home
           </Link>
           <Link
-            to="/docs/$slug"
-            params={{ slug: "getting-started/installation" }}
+            to="/docs/$"
+            params={{ _splat: "getting-started/installation" }}
             className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             Docs

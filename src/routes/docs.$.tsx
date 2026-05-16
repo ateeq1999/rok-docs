@@ -22,9 +22,10 @@ function NotFoundContent() {
   )
 }
 
-export const Route = createFileRoute("/docs/$slug")({
+export const Route = createFileRoute("/docs/$")({
   loader: ({ params }) => {
-    const doc = allDocs.find((d) => d.slug === params.slug)
+    const slug = params._splat || ""
+    const doc = allDocs.find((d) => d.slug === slug)
     if (!doc) throw notFound()
     return doc
   },

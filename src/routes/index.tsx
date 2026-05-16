@@ -21,8 +21,8 @@ function HomePage() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/docs/$slug"
-            params={{ slug: "getting-started/installation" }}
+            to="/docs/$"
+            params={{ _splat: "getting-started/installation" }}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Get Started
