@@ -1,6 +1,6 @@
 ---
 title: Controllers
-description: Handle HTTP requests with structured, stateless controllers.
+description: Handle HTTP requests with structured, stateless controllers using Axum extractors.
 ---
 
 ## Controller Pattern
@@ -8,7 +8,7 @@ description: Handle HTTP requests with structured, stateless controllers.
 Controllers in Rok are stateless structs that group related request handlers:
 
 ```rust
-use axum::{Json, extract::State};
+use axum::{Json, extract::{State, Path, Query}};
 use crate::models::User;
 
 pub struct UserController;
@@ -16,65 +16,119 @@ pub struct UserController;
 impl UserController {
     pub async fn index(
         State(state): State<AppState>,
-    ) -> Json<Vec<User>> {
-        let users = User::all().await?;
-        Json(users)
+        Query(pagination): Query<PaginationParams>,
+    ) -> Result<Json<Vec<User>>, RokError> {
+        let users = User::paginate(pagination.per_page.unwrap_or(15)).await?;
+        Ok(Json(users))
     }
 }
 ```
 
 ## Generating Controllers
 
-Use the CLI to scaffold controllers:
-
 ```bash
 # Standard controller
 rok make:controller User
 
-# Resource controller (with CRUD methods)
+# Resource controller (CRUD methods scaffolded)
 rok make:controller User --resource
 
-# Controller with custom actions
+# API controller (JSON responses)
+rok make:controller User --api
+
+# Nested controller
 rok make:controller Admin/UserController
 ```
 
 ## Controller Conventions
 
-| Method | Typical Route | Purpose |
-|--------|--------------|---------|
-| `index` | `GET /resource` | List all records |
-| `show` | `GET /resource/:id` | Show one record |
-| `store` | `POST /resource` | Create a record |
-| `update` | `PUT /resource/:id` | Update a record |
-| `destroy` | `DELETE /resource/:id` | Delete a record |
+| Method | Route | Purpose | Typical Return |
+|--------|-------|---------|----------------|
+| `index` | `GET /resource` | List all records | `Json<Vec<T>>` or paginated |
+| `show` | `GET /resource/{id}` | Show one record | `Json<T>` or `404` |
+| `store` | `POST /resource` | Create a record | `Json<T>` with `201` |
+| `update` | `PUT /resource/{id}` | Update a record | `Json<T>` |
+| `destroy` | `DELETE /resource/{id}` | Delete a record | `Json<MessageResponse>` or `204` |
 
 ## Extracting Data
 
-Access request data through Axum extractors:
+Rok provides all standard Axum extractors plus Rok-specific ones:
 
 ```rust
 use axum::{Json, extract::{Path, Query, State}};
-use serde::Deserialize;
+use rok_auth::axum::Ctx;
+use rok_validate::Valid;
 
-#[derive(Deserialize)]
-struct Pagination {
-    page: Option<u32>,
-    per_page: Option<u32>,
-}
-
-async fn index(
+async fn store(
+    // State access
     State(state): State<AppState>,
+
+    // Auth context (requires AuthLayer)
+    Ctx(ctx): Ctx<AppState>,
+
+    // Path parameters
+    Path(id): Path<i64>,
+
+    // Query parameters
     Query(pagination): Query<Pagination>,
-) -> Json<Vec<Post>> {
-    // pagination.page, pagination.per_page
+
+    // JSON body with validation
+    Valid(payload): Valid<CreateUserRequest>,
+
+    // Headers
+    headers: HeaderMap,
+) -> Result<Json<User>, RokError> {
+    let current_user = ctx.require_auth()?;
+    let db = ctx.db();
+    // ...
 }
 ```
 
 ## Response Types
 
-Controllers return anything implementing `IntoResponse`:
+Controllers return any type implementing `IntoResponse`:
 
-- `Json<T>` for JSON APIs
-- `Html<T>` for HTML responses
-- `Redirect` for redirects
-- `Result<T, RokError>` for fallible handlers
+| Type | Use Case |
+|------|----------|
+| `Json<T>` | JSON API responses |
+| `Html<T>` | HTML responses |
+| `Redirect` | Redirects |
+| `Result<T, RokError>` | Fallible handlers (auto error conversion) |
+| `StatusCode` | Status-only responses |
+| `(StatusCode, Json<T>)` | Custom status + body |
+| `Response` | Full custom response |
+
+```rust
+// Status + body
+async fn store(Valid(payload): Valid<CreatePost>) -> Result<(StatusCode, Json<Post>), RokError> {
+    let post = Post::create(&payload).await?;
+    Ok((StatusCode::CREATED, Json(post)))
+}
+
+// Empty success
+async fn destroy(Path(id): Path<i64>) -> Result<StatusCode, RokError> {
+    Post::find_or_fail(id).await?.delete().await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+```
+
+## Dependency Injection
+
+App state is available through Axum's `State` extractor:
+
+```rust
+#[derive(Clone)]
+struct AppState {
+    pool: PgPool,
+    auth: Arc<Auth>,
+    config: Arc<AppConfig>,
+}
+
+async fn handler(
+    State(state): State<AppState>,
+) -> Json<Value> {
+    // Access any app dependency
+    let users = User::all_with_pool(&state.pool).await?;
+    Ok(Json(users))
+}
+```

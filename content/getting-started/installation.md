@@ -10,7 +10,9 @@ Before installing Rok, ensure you have the following installed:
 - **Rust** (edition 2021+) — [rustup.rs](https://rustup.rs)
 - **Cargo** — comes with Rust
 - **PostgreSQL** 14+ — or Docker for the database
-- **Node.js** 18+ (optional, for frontend assets)
+- **Node.js** 18+ (optional, for frontend assets like Htmx templates)
+- **pkg-config** and **libssl** (Linux) — `apt-get install pkg-config libssl-dev`
+- **cargo-watch** (optional, for hot reload) — `cargo install cargo-watch`
 
 ## Install the Rok CLI
 
@@ -40,13 +42,13 @@ This creates a new directory `my-app/` with a complete, runnable Axum applicatio
 
 Rok offers five project templates, each optimized for different use cases:
 
-| Template | Description |
-|----------|-------------|
-| `api` | REST API with JWT auth, CRUD scaffolding, validation |
-| `saas` | Multi-tenant SaaS with magic-link auth and billing hooks |
-| `htmx` | Full-stack with Htmx and Minijinja templates |
-| `microservice` | Minimal service with health checks and Docker |
-| `minimal` | Bare Axum + SQLx skeleton |
+| Template | Description | Included Features |
+|----------|-------------|-------------------|
+| `api` | REST API | JWT auth, ORM, validation, error handling, CORS |
+| `saas` | Multi-tenant SaaS | Magic-link auth, tenant isolation, billing hooks |
+| `htmx` | Full-stack | Htmx, Minijinja templates, session auth |
+| `microservice` | Minimal service | Health checks, Docker, env config |
+| `minimal` | Bare skeleton | Axum, SQLx, basic config |
 
 Select a specific template with the `-t` flag:
 
@@ -88,3 +90,21 @@ rok dev
 ```
 
 Visit `http://localhost:3000` to see your app running.
+
+## Quick Start
+
+Once the server is running, test the health endpoint:
+
+```bash
+curl http://localhost:3000/health
+
+# Register a new user
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"secret123"}'
+
+# Login
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"secret123"}'
+```
