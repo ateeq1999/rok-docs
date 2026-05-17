@@ -253,3 +253,116 @@
   @apply mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground;
   content: attr(data-language);
 }
+
+/* ── Callout / admonition blocks ── */
+.callout {
+  @apply my-6 flex gap-3 rounded-lg border p-4 text-sm leading-relaxed;
+}
+.callout-icon {
+  @apply mt-0.5 shrink-0 text-base;
+}
+.callout-body {
+  @apply flex-1 min-w-0;
+}
+.callout-title {
+  @apply mb-1 font-semibold;
+}
+
+.callout-note {
+  @apply border-blue-200 bg-blue-50/60 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-100;
+}
+.callout-tip {
+  @apply border-green-200 bg-green-50/60 text-green-900 dark:border-green-800 dark:bg-green-950/40 dark:text-green-100;
+}
+.callout-warning {
+  @apply border-amber-200 bg-amber-50/60 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100;
+}
+.callout-danger {
+  @apply border-red-200 bg-red-50/60 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-900;
+}
+.callout-info {
+  @apply border-purple-200 bg-purple-50/60 text-purple-900 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-100;
+}
+
+/* ── Steps / numbered procedure ── */
+.steps {
+  @apply relative ml-4 border-l pl-8 space-y-8;
+}
+.steps-item::before {
+  @apply absolute -left-4 flex h-8 w-8 items-center justify-center rounded-full border bg-background text-sm font-bold;
+  content: counter(step);
+  counter-increment: step;
+}
+.steps {
+  counter-reset: step;
+}
+
+/* ── Kbd (keyboard shortcut) ── */
+.prose-custom kbd {
+  @apply inline-flex items-center rounded border bg-muted px-1.5 py-0.5 font-mono text-xs font-medium;
+}
+
+/* ── Inline file path ── */
+.prose-custom .filepath {
+  @apply rounded bg-muted px-1.5 py-0.5 font-mono text-sm before:content-[''] after:content-[''];
+}
+
+/* ── Tab groups (multi-language examples) ── */
+.tab-group {
+  @apply my-6 overflow-hidden rounded-xl border;
+}
+.tab-group-tabs {
+  @apply flex border-b bg-muted/50 px-2 pt-2 gap-1;
+}
+.tab-group-tab {
+  @apply rounded-t-md px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground;
+}
+.tab-group-tab[data-active="true"] {
+  @apply bg-background text-foreground;
+}
+.tab-group-panel {
+  @apply p-0;
+}
+
+/* ── Better heading anchor links ── */
+.prose-custom .heading-anchor {
+  @apply ml-2 inline-flex h-5 w-5 items-center justify-center rounded text-muted-foreground/40 opacity-0 hover:text-muted-foreground no-underline transition-all;
+}
+.prose-custom h1:hover .heading-anchor,
+.prose-custom h2:hover .heading-anchor,
+.prose-custom h3:hover .heading-anchor,
+.prose-custom h4:hover .heading-anchor {
+  @apply opacity-100;
+}
+
+/* ── Shiki syntax highlight overrides ── */
+.shiki {
+  @apply my-0 rounded-none border-0 bg-transparent p-0 text-sm leading-relaxed;
+}
+.shiki code {
+  @apply bg-transparent p-0;
+}
+
+/* ── Scrollbar thin ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.714 0.014 41.2 / 40%) transparent;
+}
+*::-webkit-scrollbar {
+  @apply w-1.5 h-1.5;
+}
+*::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+*::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-border;
+}
+
+/* ── Page transition fade ── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-in 0.2s ease-out both;
+}

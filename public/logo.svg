@@ -5,10 +5,16 @@
       <stop offset="100%" stop-color="#B84318"/>
     </linearGradient>
   </defs>
+  <!-- Rounded square background -->
   <rect width="64" height="64" rx="13" fill="url(#bg)"/>
+  <!-- Vertical stem -->
   <rect x="12" y="12" width="9" height="40" rx="2" fill="white"/>
+  <!-- Bowl: top horizontal -->
   <rect x="12" y="12" width="32" height="9" rx="2" fill="white"/>
+  <!-- Bowl: right vertical -->
   <rect x="35" y="12" width="9" height="22" rx="2" fill="white"/>
+  <!-- Bowl: bottom horizontal -->
   <rect x="12" y="25" width="32" height="9" rx="2" fill="white"/>
+  <!-- Leg: diagonal stroke -->
   <line x1="41" y1="34" x2="53" y2="52" stroke="white" stroke-width="9" stroke-linecap="round"/>
 </svg>
