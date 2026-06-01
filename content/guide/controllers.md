@@ -87,6 +87,7 @@ Controllers return any type implementing `IntoResponse`:
 
 | Type | Use Case |
 |------|----------|
+| `ApiResponse` | **Recommended** — standard JSON envelope (see [API Responses](/docs/guide/api-responses)) |
 | `Json<T>` | JSON API responses |
 | `Html<T>` | HTML responses |
 | `Redirect` | Redirects |
@@ -96,16 +97,22 @@ Controllers return any type implementing `IntoResponse`:
 | `Response` | Full custom response |
 
 ```rust
-// Status + body
-async fn store(Valid(payload): Valid<CreatePost>) -> Result<(StatusCode, Json<Post>), RokError> {
-    let post = Post::create(&payload).await?;
-    Ok((StatusCode::CREATED, Json(post)))
+// Using ApiResponse (recommended)
+use rok_core::api::{ApiResponse, PaginationMeta};
+
+async fn index() -> ApiResponse {
+    let posts = Post::all().await.unwrap();
+    ApiResponse::paginated(posts, PaginationMeta::new(42, 1, 15))
 }
 
-// Empty success
-async fn destroy(Path(id): Path<i64>) -> Result<StatusCode, RokError> {
-    Post::find_or_fail(id).await?.delete().await?;
-    Ok(StatusCode::NO_CONTENT)
+async fn store(Valid(payload): Valid<CreatePost>) -> ApiResponse {
+    let post = Post::create(&payload).await.unwrap();
+    ApiResponse::created(post)
+}
+
+async fn destroy(Path(id): Path<i64>) -> ApiResponse {
+    Post::find_or_fail(id).await.unwrap().delete().await.unwrap();
+    ApiResponse::no_content()
 }
 ```
 
@@ -123,9 +130,9 @@ struct AppState {
 
 async fn handler(
     State(state): State<AppState>,
-) -> Json<Value> {
+) -> ApiResponse {
     // Access any app dependency
-    let users = User::all_with_pool(&state.pool).await?;
-    Ok(Json(users))
+    let users = User::all_with_pool(&state.pool).await.unwrap();
+    ApiResponse::ok(users)
 }
 ```

@@ -160,6 +160,39 @@ let user = User::find(id).await
         .into())?;
 ```
 
+## Standard Error Envelope with `ApiResponse`
+
+For consistent error responses across your application, use `ApiResponse` from `rok-core`:
+
+```rust
+use rok_core::api::ApiResponse;
+
+// Generic error
+ApiResponse::error("E_BAD_REQUEST", "Invalid input", 400);
+
+// Row not found
+ApiResponse::error("E_ROW_NOT_FOUND", "User not found", 404);
+
+// Validation errors
+ApiResponse::validation("Validation failed", hashmap!{
+    "email" => vec!["is required".into()],
+});
+```
+
+All errors follow the same envelope:
+
+```json
+{
+  "error": {
+    "code": "E_ROW_NOT_FOUND",
+    "message": "User not found",
+    "statusCode": 404
+  }
+}
+```
+
+See the [API Responses](/docs/guide/api-responses) guide for full documentation.
+
 ## Best Practices
 
 - Return `Result<T, RokError>` from handlers for automatic conversion
