@@ -29,6 +29,7 @@ export const navigation: NavSection[] = [
       { title: "Error Handling", slug: "guide/error-handling" },
       { title: "Testing", slug: "guide/testing" },
       { title: "API Responses", slug: "guide/api-responses" },
+      { title: "Request Lifecycle", slug: "guide/request-lifecycle" },
     ],
   },
   {

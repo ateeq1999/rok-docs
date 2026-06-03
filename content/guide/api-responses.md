@@ -90,6 +90,14 @@ use rok_core::api::{ApiResponse, PaginationMeta};
 | `ApiResponse::paginated(data, meta)` | 200 | `{ "data": [...], "meta": {...} }` |
 | `ApiResponse::error(code, message, status)` | Custom | `{ "error": { "code", "message", "statusCode" } }` |
 | `ApiResponse::validation(message, errors)` | 422 | `{ "error": { "code": "E_VALIDATION_FAILURE", "message", "details": {...} } }` |
+| `ApiResponse::from_status(status)` | Custom | Empty body (status only) |
+
+### Accessor Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `response.status_code()` | `StatusCode` | HTTP status code of the response |
+| `response.into_body()` | `serde_json::Value` | Consume and return the inner JSON body |
 
 ### Basic Examples
 
@@ -179,14 +187,16 @@ let meta = PaginationMeta::new(42, 1, 15);
 
 ## Legacy `Response` Helper
 
-The `rok_auth::axum::Response` helper remains available for backward compatibility, but now delegates to `ApiResponse`. New code should use `ApiResponse` directly:
+The `rok_auth::axum::Response` helper remains available for backward compatibility, but `json()` and `error()` now show `#[deprecated]` warnings directing you to `ApiResponse`. New code should use `ApiResponse` directly:
 
 ```rust
-// Legacy (still works):
-Response::json(data);
+// Legacy (still works, with deprecation warnings):
+Response::json(data);            // → use ApiResponse::ok()
+Response::error("message", 400); // → use ApiResponse::error()
+
+// Other methods (no deprecation):
 Response::created(data);
 Response::no_content();
-Response::error("message", 400);
 
 // Recommended (new code):
 ApiResponse::ok(data);
