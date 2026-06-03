@@ -133,10 +133,18 @@ async fn update(
 }
 
 async fn admin_only(
-    Ctx(ctx): Ctx<AppState>,
+    ctx: RequestContext,
 ) -> Result<Json<Value>, RokError> {
     ctx.require_ability("admin-access")?; // Auto 403
     Ok(Json(json!({ "secret": "data" })))
+}
+
+/// Or using role-based authorization inline:
+async fn admin_dashboard(
+    ctx: RequestContext,
+) -> ApiResponse {
+    ctx.require_role::<Admin>().ok();
+    ctx.ok(serde_json::json!({ "secret": "data" }))
 }
 ```
 

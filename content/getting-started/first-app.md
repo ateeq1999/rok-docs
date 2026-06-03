@@ -84,49 +84,68 @@ This creates `src/app/controllers/post_controller.rs` with CRUD method stubs.
 Open the controller and implement the handlers:
 
 ```rust
-use axum::{Json, extract::{Path, State}};
-use rok_auth::axum::Ctx;
+use axum::extract::Path;
+use axum::Json;
+use rok_auth::axum::RequestContext;
+use rok_core::api::{ApiResponse, PaginationMeta};
 use rok_validate::Valid;
 use crate::models::Post;
 use crate::validators::post_requests::{CreatePostRequest, UpdatePostRequest};
 
 pub async fn index(
-    State(state): State<AppState>,
-) -> Result<Json<Vec<Post>>, RokError> {
-    let posts = Post::all().await?;
-    Ok(Json(posts))
+    ctx: RequestContext,
+) -> ApiResponse {
+    let posts = Post::all().await.unwrap_or_default();
+    let meta = PaginationMeta::new(42, 1, 15);
+    ctx.paginated(posts, meta)
 }
 
 pub async fn show(
     Path(id): Path<i64>,
-) -> Result<Json<Post>, RokError> {
-    let post = Post::find_or_fail(id).await?;
-    Ok(Json(post))
+) -> ApiResponse {
+    match Post::find_by_pk(id).await {
+        Ok(Some(post)) => ApiResponse::ok(post),
+        Ok(None) => ApiResponse::error("E_ROW_NOT_FOUND", "Post not found", 404),
+        Err(e) => ApiResponse::error("E_DATABASE", e.to_string(), 500),
+    }
 }
 
 pub async fn store(
-    Ctx(ctx): Ctx<AppState>,
+    ctx: RequestContext,
     Valid(payload): Valid<CreatePostRequest>,
-) -> Result<(StatusCode, Json<Post>), RokError> {
-    let post = Post::create(&payload).await?;
-    Ok((StatusCode::CREATED, Json(post)))
+) -> ApiResponse {
+    match Post::create(&payload).await {
+        Ok(post) => ctx.created(serde_json::json!({ "post": post })),
+        Err(e) => ctx.error("E_CREATE", e.to_string(), 500),
+    }
 }
 
 pub async fn update(
+    ctx: RequestContext,
     Path(id): Path<i64>,
     Valid(payload): Valid<UpdatePostRequest>,
-) -> Result<Json<Post>, RokError> {
-    let post = Post::find_or_fail(id).await?;
-    post.update(&payload).await?;
-    Ok(Json(post))
+) -> ApiResponse {
+    match Post::find_by_pk(id).await {
+        Ok(Some(post)) => {
+            post.update(&payload).await.unwrap();
+            ctx.ok(serde_json::json!({ "post": post }))
+        }
+        Ok(None) => ctx.error("E_ROW_NOT_FOUND", "Post not found", 404),
+        Err(e) => ctx.error("E_DATABASE", e.to_string(), 500),
+    }
 }
 
 pub async fn destroy(
     Path(id): Path<i64>,
-) -> Result<StatusCode, RokError> {
-    let post = Post::find_or_fail(id).await?;
-    post.delete().await?;
-    Ok(StatusCode::NO_CONTENT)
+) -> ApiResponse {
+    match Post::find_by_pk(id).await {
+        Ok(Some(post)) => {
+            post.delete().await.unwrap();
+            ApiResponse::no_content()
+        }
+        Ok(None) => ApiResponse::error("E_ROW_NOT_FOUND", "Post not found", 404),
+        Err(e) => ApiResponse::error("E_DATABASE", e.to_string(), 500),
+    }
 }
 ```
 

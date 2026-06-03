@@ -103,70 +103,67 @@ use rok_core::api::{ApiResponse, PaginationMeta};
 
 ```rust
 use rok_core::api::{ApiResponse, PaginationMeta};
-use axum::response::IntoResponse;
 
-async fn list_users() -> impl IntoResponse {
-    let users = User::all().await.unwrap();
+async fn list_users() -> ApiResponse {
+    let users = User::all().await.unwrap_or_default();
     let meta = PaginationMeta::new(42, 1, 15);
     ApiResponse::paginated(users, meta)
 }
 
-async fn show_user(Path(id): Path<i64>) -> impl IntoResponse {
+async fn show_user(Path(id): Path<i64>) -> ApiResponse {
     match User::find_by_pk(id).await {
-        Ok(Some(user)) => ApiResponse::ok(user).into_response(),
-        Ok(None) => ApiResponse::error("E_ROW_NOT_FOUND", "User not found", 404).into_response(),
-        Err(e) => ApiResponse::error("E_QUERY_EXCEPTION", e.to_string(), 500).into_response(),
+        Ok(Some(user)) => ApiResponse::ok(user),
+        Ok(None) => ApiResponse::error("E_ROW_NOT_FOUND", "User not found", 404),
+        Err(e) => ApiResponse::error("E_QUERY_EXCEPTION", e.to_string(), 500),
     }
 }
 
-async fn create_user(Valid(body): Valid<CreateUserRequest>) -> impl IntoResponse {
-    let user = User::create(body.validated()).await.unwrap();
+async fn create_user(Json(body): Json<CreateUserRequest>) -> ApiResponse {
+    let user = User::create(body).await.unwrap();
     ApiResponse::created(user)
 }
 
-async fn delete_user(Path(id): Path<i64>) -> impl IntoResponse {
+async fn delete_user(Path(id): Path<i64>) -> ApiResponse {
     User::delete_by_pk(id).await.unwrap();
     ApiResponse::no_content()
 }
 ```
 
-### In Controllers
+### Using Response Helpers on `RequestContext`
 
-When using `#[controller]` decorators, return `ApiResponse` directly:
+When using `RequestContext` (the unified extractor), you can skip the `ApiResponse::` prefix — the context itself has response helpers:
 
 ```rust
-#[controller("/users")]
-impl UserController {
-    #[get("/")]
-    async fn index(cx: RequestContext) -> ApiResponse {
-        let users = User::all().await.unwrap();
-        ApiResponse::paginated(users, PaginationMeta::new(42, 1, 15))
-    }
+use rok_auth::axum::RequestContext;
 
-    #[get("/{id}")]
-    async fn show(cx: RequestContext, user: ModelBind<User>) -> ApiResponse {
-        ApiResponse::ok(user.0)
-    }
+async fn index(ctx: RequestContext) -> ApiResponse {
+    let users = User::all().await.unwrap_or_default();
+    ctx.ok(serde_json::json!({ "users": users }))
+}
 
-    #[post("/")]
-    async fn store(cx: RequestContext, Valid(body): Valid<CreateUserRequest>) -> ApiResponse {
-        let user = User::create(body.validated()).await.unwrap();
-        ApiResponse::created(user)
-    }
-
-    #[put("/{id}")]
-    async fn update(cx: RequestContext, user: ModelBind<User>, Valid(body): Valid<UpdateUserRequest>) -> ApiResponse {
-        User::update_by_pk(user.0.id(), body.validated()).await.unwrap();
-        ApiResponse::no_content()
-    }
-
-    #[delete("/{id}")]
-    async fn destroy(cx: RequestContext, user: ModelBind<User>) -> ApiResponse {
-        User::delete_by_pk(user.0.id()).await.unwrap();
-        ApiResponse::no_content()
+async fn show(ctx: RequestContext, Path(id): Path<i64>) -> ApiResponse {
+    match User::find_by_pk(id).await {
+        Ok(Some(user)) => ctx.ok(serde_json::json!({ "user": user })),
+        Ok(None) => ctx.error("E_ROW_NOT_FOUND", "User not found", 404),
+        Err(e) => ctx.error("E_QUERY_EXCEPTION", e.to_string(), 500),
     }
 }
+
+async fn store(ctx: RequestContext, Json(body): Json<CreateUserRequest>) -> ApiResponse {
+    let user = User::create(body).await.unwrap();
+    ctx.created(serde_json::json!({ "user": user }))
+}
 ```
+
+### Available Context Helpers
+
+| Helper | Equivalent To |
+|--------|---------------|
+| `ctx.ok(data)` | `ApiResponse::ok(data)` |
+| `ctx.created(data)` | `ApiResponse::created(data)` |
+| `ctx.no_content()` | `ApiResponse::no_content()` |
+| `ctx.error(code, msg, status)` | `ApiResponse::error(code, msg, status)` |
+| `ctx.paginated(data, meta)` | `ApiResponse::paginated(data, meta)` |
 
 ## PaginationMeta
 

@@ -77,6 +77,7 @@ rok make:controller <name> --resource     # Resource controller (index, store, s
 ```bash
 rok make:request <name>                   # Request validation struct (src/app/requests/)
 rok make:request <name> --resource        # Create + update request pair for a resource
+                                          # Templates include bail/sometimes examples
 rok make:validator <name>                 # Request validation DTO (src/app/validators/)
 rok make:policy <name>                    # Authorization policy
 rok make:job <name>                       # Background job
